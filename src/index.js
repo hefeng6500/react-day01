@@ -7,12 +7,22 @@ import ReactDOM from "./lib/react-dom.js";
 //   </div>
 // );
 
-let helloComponent = React.createElement(
-  "div",
-  { className: "title", style: { color: "red" } },
-  React.createElement("h1", {}, "hello"),
-  "world"
-);
+// let helloComponent = React.createElement(
+//   "div",
+//   { className: "title", style: { color: "red" } },
+//   React.createElement("h1", {}, "hello"),
+//   "world"
+// );
 
-console.log(JSON.stringify(helloComponent, null, 2));
-ReactDOM.render(helloComponent, document.getElementById("root"));
+function HelloComponent(props) {
+  return (
+    <div className="title" style={{ color: "red" }}>
+      <span>{props.name}</span>
+      {props.children}
+    </div>
+  );
+}
+
+let ele = <HelloComponent name="hello"></HelloComponent>;
+
+ReactDOM.render(ele, document.getElementById("root"));
