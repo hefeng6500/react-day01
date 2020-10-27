@@ -12,8 +12,14 @@ function createDOM(vdom) {
   let { type, props } = vdom;
   let dom;
 
+  debugger
   if (typeof type === "function") {
-    return mountFunctionComponent(vdom);
+    if (type.isReactComponent) {
+      //说明这个type是一个类组件的虚拟DOM元素
+      return mountClassComponent(vdom);
+    } else {
+      return mountFunctionComponent(vdom);
+    }
   } else {
     dom = document.createElement(type);
   }
@@ -57,7 +63,7 @@ function updateDOMAttr(dom, props) {
 
 // 渲染 children 有多个元素的节点
 function reconcileChildren(childrenVdom, parentDOM) {
-  for (let i = 0; i < childrenVdom.length; i++) {
+  for (let i = 0; i < childrenVdom.length; i) {
     let childVdom = childrenVdom[i];
     render(childVdom, parentDOM);
   }
@@ -67,6 +73,15 @@ function mountFunctionComponent(vdom) {
   const { type, props } = vdom;
   const renderVdom = type(props);
   return createDOM(renderVdom);
+}
+
+function mountClassComponent(vdom) {
+  const { type, props } = vdom;
+  const classInstance = new type(props);
+  const renderVdom = classInstance.render();
+  const dom = createDOM(renderVdom);
+  classInstance.dom = dom;
+  return dom;
 }
 
 export default {

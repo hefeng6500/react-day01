@@ -14,14 +14,15 @@ import ReactDOM from "./lib/react-dom.js";
 //   "world"
 // );
 
-function HelloComponent(props) {
-  return (
-    <div className="title" style={{ color: "red" }}>
-      <span>{props.name}</span>
-    </div>
-  );
+class ClassComponent extends React.Component {
+  render() {
+    return (
+      <div className="title" style={{ color: "red" }}>
+        <span>{this.props.name}</span>
+      </div>
+    );
+  }
 }
+let element = <ClassComponent name="hello"></ClassComponent>;
 
-let ele = <HelloComponent name="hello"></HelloComponent>;
-
-ReactDOM.render(ele, document.getElementById("root"));
+ReactDOM.render(element, document.getElementById("root"));
