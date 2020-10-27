@@ -44,7 +44,8 @@ function updateDOMAttr(dom, props) {
   for (let key in props) {
     if (key === "children") {
       continue;
-    } else if (key === "style") {
+    }
+    if (key === "style") {
       for (let attr in props[key]) {
         dom.style[attr] = props[key][attr];
       }
@@ -56,14 +57,13 @@ function updateDOMAttr(dom, props) {
 
 // 渲染 children 有多个元素的节点
 function reconcileChildren(childrenVdom, parentDOM) {
-  for (let i = 0; i < childrenVdom.length; i) {
+  for (let i = 0; i < childrenVdom.length; i++) {
     let childVdom = childrenVdom[i];
     render(childVdom, parentDOM);
   }
 }
 
 function mountFunctionComponent(vdom) {
-  debugger
   const { type, props } = vdom;
   const renderVdom = type(props);
   return createDOM(renderVdom);
