@@ -44,4 +44,6 @@ class Counter extends React.Component {
   }
 }
 
-ReactDOM.render(<Counter title="计数器" />, document.getElementById("root"));
+const counter = <Counter title="计数器" />
+
+ReactDOM.render(counter, document.getElementById("root"));
