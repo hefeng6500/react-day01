@@ -12,7 +12,6 @@ function createDOM(vdom) {
   let { type, props } = vdom;
   let dom;
 
-  debugger
   if (typeof type === "function") {
     if (type.isReactComponent) {
       //说明这个type是一个类组件的虚拟DOM元素
@@ -63,7 +62,7 @@ function updateDOMAttr(dom, props) {
 
 // 渲染 children 有多个元素的节点
 function reconcileChildren(childrenVdom, parentDOM) {
-  for (let i = 0; i < childrenVdom.length; i) {
+  for (let i = 0; i < childrenVdom.length; i++) {
     let childVdom = childrenVdom[i];
     render(childVdom, parentDOM);
   }
