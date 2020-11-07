@@ -3,7 +3,7 @@ function render(vdom, container) {
   container.appendChild(dom);
 }
 
-function createDOM(vdom) {
+export function createDOM(vdom) {
   // 如果 vdom 是基本类型，说明是文本类型
   if (typeof vdom === "string" || typeof vdom === "number") {
     return document.createTextNode(vdom);
@@ -54,6 +54,8 @@ function updateDOMAttr(dom, props) {
       for (let attr in props[key]) {
         dom.style[attr] = props[key][attr];
       }
+    } else if (key.startsWith("on")) {
+      dom[key.toLocaleLowerCase()] = props[key];
     } else {
       dom[key] = props[key];
     }
