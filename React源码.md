@@ -368,5 +368,50 @@ function updateClassComponent(classInstance, renderVdom) {
 
 #### 异步更新
 
+- 添加队列函数 `updateQueen` 使用 `add()` 收集 `updaters ` 并使用 `batchUpdate()` 更新(类似发布订阅)
+
+- 修改 index.js 文件内容，手动改变 `isBatchingUpdate` 的值，并手动清空队列更新（这里有点 low ）
+
+```jsx
+// index.js
+class Counter extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { number: 0 };
+  }
+  handleClick = () => {
+    updateQueen.isBatchingUpdate = true;
+    this.setState({ number: this.state.number + 1 });
+    console.log(this.state);
+
+    setTimeout(() => {
+      updateQueen.batchUpdate();
+    });
+  };
+  render() {
+    return (
+      <div>
+        <p>number:{this.state.number}</p>
+        <button onClick={this.handleClick}>点击</button>
+      </div>
+    );
+  }
+}
+```
+
+```jsx
+export const updateQueen = {
+  updaters: [],
+  isBatchingUpdate: false,
+  add(updater) {
+    this.updaters.push(updater);
+  },
+  batchUpdate() {
+    this.updaters.forEach((updater) => updater.updateComponent());
+    this.isBatchingUpdate = true;
+  },
+};
+```
+
 
 
