@@ -243,3 +243,130 @@ export default {
 - 不管是类组件还是函数式组件 `typeof type` 都是一个 `"function"`。函数式组件不用说，类组件 `class`声明的类就是一个 `function`；
 - jsx ？ 是一种语法，打包的时候会进行编译，编译成 `React.createElement()` 的结果
 - React 元素指的就是虚拟 DOM，即普通的 JSX 对象，它描述了真实DOM
+
+
+
+## Day02
+
+### 实现事件绑定
+
+```js
+// react-dom.js
+function updateDOMAttr(dom, props) {
+  for (let key in props) {
+    if (key === "children") {
+      continue;
+    }
+    if (key === "style") {
+      for (let attr in props[key]) {
+        dom.style[attr] = props[key][attr];
+      }
+    } else if (key.startsWith("on")) {
+      // onClick => onclick
+      dom[key.toLocaleLowerCase()] = newProps[key]
+    } else {
+      dom[key] = props[key];
+    }
+  }
+}
+```
+
+
+
+### 实现 setState() 
+
+#### 同步更新
+
+- 当调用 `this.setState()` 时，实际调用 Component  类的 `setState`
+- 创建 Updater 类
+  - 用于收集状态 `addState()`,`this.pendingStates = []` 
+  - 合并状态，`getState()`
+  - 触发视图进行强制刷新，`updateComponent()`
+- Component  类中 `forceUpdate()` 强制更新视图，将虚拟 dom 转化为真实 dom，挂载到视图
+
+```jsx
+// Component.js
+class Updater {
+  constructor(classInstance) {
+    // 类组件实例
+    this.classInstance = classInstance;
+    // 收集状态
+    this.pendingStates = [];
+  }
+
+  addState(partialState) {
+    this.pendingStates.push(partialState);
+    // 如果当前处于批量更新模式
+    updateQueen.isBatchingUpdate
+      ? updateQueen.add(this)
+      : this.updateComponent();
+  }
+
+  updateComponent() {
+    let { classInstance } = this;
+    if (this.pendingStates.length > 0) {
+      // 替换 state 为最新的状态
+      classInstance.state = this.getState();
+      // 强制视图进行更新
+      classInstance.forceUpdate();
+    }
+  }
+  // 获取最新的状态
+  getState() {
+    let { classInstance, pendingStates } = this;
+    let { state } = classInstance;
+    if (pendingStates.length > 0) {
+      pendingStates.forEach((nextState) => {
+        if (isFunction(nextState)) {
+          nextState = nextState(state);
+        } else {
+          state = { ...state, ...nextState };
+        }
+      });
+      pendingStates.length = 0;
+    }
+    return state;
+  }
+}
+
+```
+
+
+
+```jsx
+// Component.js
+class Component {
+  static isReactComponent = true;
+  constructor(props) {
+    this.props = props;
+    this.state = {};
+
+    this.updater = new Updater(this);
+  }
+
+  setState(partialState) {
+    this.updater.addState(partialState);
+  }
+
+  // 更新视图
+  forceUpdate() {
+    // 此时 renderVdom 已经是更新后的虚拟 DOM（state已经更新）
+    let renderVdom = this.render();
+    updateClassComponent(this, renderVdom);
+  }
+}
+
+function updateClassComponent(classInstance, renderVdom) {
+  let oldDOM = classInstance.dom;
+  let newDOM = createDOM(renderVdom);
+  oldDOM.parentNode.replaceChild(newDOM, oldDOM);
+  classInstance.dom = newDOM;
+}
+```
+
+
+
+#### 异步更新
+
+
+
