@@ -1,19 +1,17 @@
 import { createDOM } from "./react-dom";
 import { isFunction } from "../utils";
 
-// export const updateQueen = {
-//   updaters: [],
-//   isBatchingUpdate: false,
-//   add(updater) {
-//     this.updaters.push(updater);
-//   },
-//   batchUpdate() {
-//     this.updaters.forEach((updater) => {
-//       updater();
-//     });
-//     this.isBatchingUpdate = true;
-//   },
-// };
+export const updateQueen = {
+  updaters: [],
+  isBatchingUpdate: false,
+  add(updater) {
+    this.updaters.push(updater);
+  },
+  batchUpdate() {
+    this.updaters.forEach((updater) => updater.updateComponent());
+    this.isBatchingUpdate = true;
+  },
+};
 
 class Updater {
   constructor(classInstance) {
@@ -26,8 +24,9 @@ class Updater {
   addState(partialState) {
     this.pendingStates.push(partialState);
     // 如果当前处于批量更新模式
-    // updateQueen.isBatchingUpdate ? updateQueen.add(this) : this.updateComponent();
-    this.updateComponent();
+    updateQueen.isBatchingUpdate
+      ? updateQueen.add(this)
+      : this.updateComponent();
   }
 
   updateComponent() {
