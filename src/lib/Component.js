@@ -1,7 +1,7 @@
 import { createDOM } from "./react-dom";
 import { isFunction } from "../utils";
 
-export const updateQueen = {
+export const updateQueue = {
   updaters: new Set(),
   isBatchingUpdate: false,
   add(updater) {
@@ -24,8 +24,8 @@ class Updater {
   addState(partialState) {
     this.pendingStates.push(partialState);
     // 如果当前处于批量更新模式
-    updateQueen.isBatchingUpdate
-      ? updateQueen.add(this)
+    updateQueue.isBatchingUpdate
+      ? updateQueue.add(this)
       : this.updateComponent();
   }
 

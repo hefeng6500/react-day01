@@ -252,6 +252,7 @@ export default {
 
 ```js
 // react-dom.js
+// 用于更新 DOM 节点的属性
 function updateDOMAttr(dom, props) {
   for (let key in props) {
     if (key === "children") {
@@ -262,13 +263,57 @@ function updateDOMAttr(dom, props) {
         dom.style[attr] = props[key][attr];
       }
     } else if (key.startsWith("on")) {
-      // onClick => onclick
-      dom[key.toLocaleLowerCase()] = newProps[key]
+      // dom[key.toLocaleLowerCase()] = props[key];
+      addEvent(dom, key.toLocaleLowerCase(), props[key]);
     } else {
       dom[key] = props[key];
     }
   }
 }
+```
+
+```jsx
+// event.js
+
+import { updateQueue } from "./Component";
+
+/**
+ *
+ * @param {dom} dom
+ * @param {eventType} eventType
+ * @param {listener} listener
+ */
+export function addEvent(dom, eventType, listener) {
+  let store = dom.store || (dom.store = {});
+  store[eventType] = listener;
+  if (!document[eventType]) {
+    document[eventType] = dispatchEvent;
+  }
+}
+
+function dispatchEvent(event) {
+  debugger;
+  let { target, type } = event;
+  let eventType = `on${type}`;
+  updateQueue.isBatchingUpdate = true;
+  let { store } = target;
+  let listener = store && store[eventType];
+  let syntheticEvent = createSyntheticEvent(event);
+  listener.call(target, syntheticEvent);
+  for (let key in syntheticEvent) {
+    syntheticEvent[key] = null;
+  }
+  updateQueue.batchUpdate();
+}
+
+function createSyntheticEvent(event) {
+  let obj = {};
+  for (let key in event) {
+    obj[key] = event[key];
+  }
+  return obj;
+}
+
 ```
 
 
