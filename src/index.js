@@ -33,12 +33,14 @@ class Counter extends React.Component {
     this.setState({ number: this.state.number + 1 });
     this.setState({ number: this.state.number + 1 });
     console.log(this.state);
-
-
   };
+
+  test() {
+    console.log("test");
+  }
   render() {
     return (
-      <div>
+      <div onClick={this.test}>
         <p>number:{this.state.number}</p>
         <button onClick={this.handleClick}>点击</button>
       </div>

@@ -15,14 +15,20 @@ export function addEvent(dom, eventType, listener) {
 }
 
 function dispatchEvent(event) {
-  debugger;
   let { target, type } = event;
   let eventType = `on${type}`;
   updateQueue.isBatchingUpdate = true;
-  let { store } = target;
-  let listener = store && store[eventType];
+
   let syntheticEvent = createSyntheticEvent(event);
-  listener.call(target, syntheticEvent);
+
+  // 实现事件冒泡
+  while (target) {
+    let { store } = target;
+    let listener = store && store[eventType];
+    listener && listener.call(target, syntheticEvent);
+    target = target.parentNode;
+  }
+
   for (let key in syntheticEvent) {
     syntheticEvent[key] = null;
   }
