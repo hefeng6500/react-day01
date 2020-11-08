@@ -33,6 +33,7 @@ class Counter extends React.Component {
   handleClick = () => {
     updateQueen.isBatchingUpdate = true;
     this.setState({ number: this.state.number + 1 });
+    this.setState({ number: this.state.number + 1 });
     console.log(this.state);
 
     setTimeout(() => {

@@ -401,10 +401,10 @@ class Counter extends React.Component {
 
 ```jsx
 export const updateQueen = {
-  updaters: [],
+  updaters: new Set(),
   isBatchingUpdate: false,
   add(updater) {
-    this.updaters.push(updater);
+    this.updaters.add(updater);
   },
   batchUpdate() {
     this.updaters.forEach((updater) => updater.updateComponent());

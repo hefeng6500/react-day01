@@ -2,10 +2,10 @@ import { createDOM } from "./react-dom";
 import { isFunction } from "../utils";
 
 export const updateQueen = {
-  updaters: [],
+  updaters: new Set(),
   isBatchingUpdate: false,
   add(updater) {
-    this.updaters.push(updater);
+    this.updaters.add(updater);
   },
   batchUpdate() {
     this.updaters.forEach((updater) => updater.updateComponent());
