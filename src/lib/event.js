@@ -17,6 +17,7 @@ export function addEvent(dom, eventType, listener) {
 function dispatchEvent(event) {
   let { target, type } = event;
   let eventType = `on${type}`;
+  // isBatchingUpdate 置为 true， 即批量更新
   updateQueue.isBatchingUpdate = true;
 
   let syntheticEvent = createSyntheticEvent(event);
@@ -32,9 +33,12 @@ function dispatchEvent(event) {
   for (let key in syntheticEvent) {
     syntheticEvent[key] = null;
   }
+
+  // 触发批量更新，清空 Set()
   updateQueue.batchUpdate();
 }
 
+// 使用原生的 event 成封装 React 自有的 event 对象
 function createSyntheticEvent(event) {
   let obj = {};
   for (let key in event) {

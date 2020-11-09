@@ -250,6 +250,8 @@ export default {
 
 ### 实现事件绑定
 
+- react 中的 event 是 React 实现的事件，不是原生的 DOM 事件。`let syntheticEvent = createSyntheticEvent(event);`
+
 ```js
 // react-dom.js
 // 用于更新 DOM 节点的属性
@@ -294,8 +296,10 @@ export function addEvent(dom, eventType, listener) {
 function dispatchEvent(event) {
   let { target, type } = event;
   let eventType = `on${type}`;
+  // isBatchingUpdate 置为 true， 即批量更新
   updateQueue.isBatchingUpdate = true;
 
+  // 获取合成事件 syntheticEvent（即 react 封装的 event）
   let syntheticEvent = createSyntheticEvent(event);
 
   // 实现事件冒泡
@@ -309,9 +313,12 @@ function dispatchEvent(event) {
   for (let key in syntheticEvent) {
     syntheticEvent[key] = null;
   }
+
+  // 触发批量更新，清空 Set()
   updateQueue.batchUpdate();
 }
 
+// 使用原生的 event 成封装 React 自有的 event 对象
 function createSyntheticEvent(event) {
   let obj = {};
   for (let key in event) {
@@ -319,6 +326,7 @@ function createSyntheticEvent(event) {
   }
   return obj;
 }
+
 
 ```
 
@@ -347,9 +355,12 @@ class Updater {
 
   addState(partialState) {
     this.pendingStates.push(partialState);
-    // 如果当前处于批量更新模式
-    updateQueen.isBatchingUpdate
-      ? updateQueen.add(this)
+    /**
+     * 如果是异步更新，当前处于批量更新模式，则 updateQueue.add(this) ，updaters 中存储更新的 Updater 实例
+     * 如果是同步更新，则直接调用 updateComponent（）
+     */
+    updateQueue.isBatchingUpdate
+      ? updateQueue.add(this)
       : this.updateComponent();
   }
 
@@ -379,7 +390,6 @@ class Updater {
     return state;
   }
 }
-
 ```
 
 

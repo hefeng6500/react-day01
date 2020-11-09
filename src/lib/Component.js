@@ -9,7 +9,8 @@ export const updateQueue = {
   },
   batchUpdate() {
     this.updaters.forEach((updater) => updater.updateComponent());
-    this.isBatchingUpdate = true;
+    this.isBatchingUpdate = false;
+    this.updaters.clear();
   },
 };
 
@@ -23,7 +24,10 @@ class Updater {
 
   addState(partialState) {
     this.pendingStates.push(partialState);
-    // 如果当前处于批量更新模式
+    /**
+     * 如果是异步更新，当前处于批量更新模式，则 updateQueue.add(this) ，updaters 中存储更新的 Updater 实例
+     * 如果是同步更新，则直接调用 updateComponent（）
+     */
     updateQueue.isBatchingUpdate
       ? updateQueue.add(this)
       : this.updateComponent();
