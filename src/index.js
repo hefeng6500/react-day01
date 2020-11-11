@@ -40,8 +40,9 @@ class Counter extends React.Component {
   }
   render() {
     return (
-      <div onClick={this.test}>
+      <div>
         <p>number:{this.state.number}</p>
+        <button onClick={this.test}>test</button>
         <button onClick={this.handleClick}>点击</button>
       </div>
     );

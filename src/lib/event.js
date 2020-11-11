@@ -9,9 +9,10 @@ import { updateQueue } from "./Component";
 export function addEvent(dom, eventType, listener) {
   let store = dom.store || (dom.store = {});
   store[eventType] = listener;
-  if (!document[eventType]) {
-    document[eventType] = dispatchEvent;
-  }
+  // if (!document[eventType]) {
+  //   document[eventType] = dispatchEvent;
+  // }
+  document.addEventListener(eventType.slice(2), dispatchEvent);
 }
 
 function dispatchEvent(event) {

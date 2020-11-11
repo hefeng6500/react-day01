@@ -1,5 +1,7 @@
 # React 源码
 
+本笔记仅作为 **源码初探 **之用，张老师的课简化了很多复杂的源码实现。
+
 
 
 ## Day01
@@ -248,9 +250,33 @@ export default {
 
 ## Day02
 
-### 实现事件绑定
+### 实现合成事件
 
-- react 中的 event 是 React 实现的事件，不是原生的 DOM 事件。`let syntheticEvent = createSyntheticEvent(event);`
+- React V 17.x 以前是将事件委托给 document；
+
+- react 中的 event 是 React 实现的事件，不是原生的 DOM 事件。`let syntheticEvent = createSyntheticEvent(event)`；
+
+
+
+​		在 React 合成事件中，元素绑定的事件是委托给 document 对象的。在 document  对象绑定事件监听函数 `dispatchEvent`，当点击元素时，事件会委托至 document，然后 document 监听到点击事件时 触发 `dispatchEvent` ，`dispatchEvent` 会获取当前点击的目标元素 `target.store` 上预先存好的事件函数进行调用。
+
+`document.addEventListener(eventType.slice(2), dispatchEvent);` 这段代码其实绑定一次就够了，因为只是绑定了一个 通用的 `dispatchEvent`，后续调用会根据 target 获取到点击事件，注意这里并不是 target 冒泡导致 document 上的监听事件被执行！
+
+
+
+这个合成事件的思路挺奇怪的，为什么要将事件通通交给 document 去代理执行？
+
+- [React源码分析6 — React合成事件系统](https://zhuanlan.zhihu.com/p/25883536)
+
+- [由浅到深的React合成事件](https://juejin.im/post/6844903988794671117)
+
+
+
+> 简单的讲挂载的时候，通过listenerBank把事件存起来了，触发的时候document进行dispatchEvent，找到触发事件的最深的一个节点，向上遍历拿到所有的callback放在eventQueue. 根据事件类型构建event对象，遍历执行eventQueue
+>
+> ​																																																—— @fiveoneLei 腾讯				
+
+​																														
 
 ```js
 // react-dom.js
@@ -288,9 +314,10 @@ import { updateQueue } from "./Component";
 export function addEvent(dom, eventType, listener) {
   let store = dom.store || (dom.store = {});
   store[eventType] = listener;
-  if (!document[eventType]) {
-    document[eventType] = dispatchEvent;
-  }
+  // if (!document[eventType]) {
+  //   document[eventType] = dispatchEvent;
+  // }
+  document.addEventListener(eventType.slice(2), dispatchEvent);
 }
 
 function dispatchEvent(event) {
@@ -299,7 +326,6 @@ function dispatchEvent(event) {
   // isBatchingUpdate 置为 true， 即批量更新
   updateQueue.isBatchingUpdate = true;
 
-  // 获取合成事件 syntheticEvent（即 react 封装的 event）
   let syntheticEvent = createSyntheticEvent(event);
 
   // 实现事件冒泡
