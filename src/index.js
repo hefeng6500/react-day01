@@ -24,31 +24,58 @@ import ReactDOM from "./lib/react-dom.js";
 // }
 // let element = <ClassComponent name="hello"></ClassComponent>;
 
+// class Counter extends React.Component {
+//   constructor(props) {
+//     super(props);
+//     this.state = { number: 0 };
+//   }
+//   handleClick = () => {
+//     this.setState({ number: this.state.number + 1 });
+//     this.setState({ number: this.state.number + 1 });
+//     console.log(this.state);
+//   };
+
+//   test() {
+//     console.log("test");
+//   }
+//   render() {
+//     return (
+//       <div>
+//         <p>number:{this.state.number}</p>
+//         <button onClick={this.test}>test</button>
+//         <button onClick={this.handleClick}>点击</button>
+//       </div>
+//     );
+//   }
+// }
+
+// const counter = <Counter title="计数器" />;
+
 class Counter extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { number: 0 };
+    this.firstNumber = React.createRef();
+    this.lastNumber = React.createRef();
+    this.result = React.createRef();
   }
-  handleClick = () => {
-    this.setState({ number: this.state.number + 1 });
-    this.setState({ number: this.state.number + 1 });
-    console.log(this.state);
+
+  add = () => {
+    const firstValue = this.firstNumber.current.value;
+    const lastValue = this.lastNumber.current.value;
+    this.result.current.value = parseInt(firstValue) + parseInt(lastValue);
   };
 
-  test() {
-    console.log("test");
-  }
   render() {
     return (
       <div>
-        <p>number:{this.state.number}</p>
-        <button onClick={this.test}>test</button>
-        <button onClick={this.handleClick}>点击</button>
+        <input ref={this.firstNumber} /> + <input ref={this.lastNumber} />
+        <button onClick={this.add}>=</button>
+        <input ref={this.result} />
       </div>
     );
   }
 }
 
-const counter = <Counter title="计数器" />;
+const counter = <Counter />;
 
 ReactDOM.render(counter, document.getElementById("root"));

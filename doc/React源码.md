@@ -502,3 +502,71 @@ export const updateQueen = {
 
 
 
+### 实现createRef()
+
+~~~jsx
+// react.js
+
+function createRef() {
+  return {
+    current: null,
+  };
+}
+
+export default { 
+    // ...
+    createRef
+};
+~~~
+
+~~~jsx
+// react-dom.js
+
+export function createDOM(vdom) {
+  // ...
+  // ...
+  let { type, props, ref } = vdom;
+  // ...
+  // ...
+  // ...
+
+  if (ref) {
+    ref.current = dom;
+  }
+  return dom;
+}
+~~~
+
+~~~jsx
+// 实例
+
+class Counter extends React.Component {
+  constructor(props) {
+    super(props);
+    this.firstNumber = React.createRef();
+    this.lastNumber = React.createRef();
+    this.result = React.createRef();
+  }
+
+  add = () => {
+    const firstValue = this.firstNumber.current.value;
+    const lastValue = this.lastNumber.current.value;
+    this.result.current.value = parseInt(firstValue) + parseInt(lastValue);
+  };
+
+  render() {
+    return (
+      <div>
+        <input ref={this.firstNumber} /> + <input ref={this.lastNumber} />
+        <button onClick={this.add}>=</button>
+        <input ref={this.result} />
+      </div>
+    );
+  }
+}
+
+const counter = <Counter />;
+
+ReactDOM.render(counter, document.getElementById("root"));
+~~~
+

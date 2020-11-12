@@ -1,9 +1,12 @@
-import Component from './Component.js';
+import Component from "./Component.js";
 
 function createElement(type, config, children) {
+  let ref;
   if (config) {
     delete config.__source;
     delete config.__self;
+    ref = config.ref;
+    delete config.ref;
   }
 
   let props = { ...config };
@@ -16,7 +19,14 @@ function createElement(type, config, children) {
   return {
     type,
     props,
+    ref,
   };
 }
 
-export default { createElement, Component };
+function createRef() {
+  return {
+    current: null,
+  };
+}
+
+export default { createElement, Component, createRef };
