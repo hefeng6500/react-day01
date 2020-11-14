@@ -28,6 +28,10 @@ class Updater {
      * 如果是异步更新，当前处于批量更新模式，则 updateQueue.add(this) ，updaters 中存储更新的 Updater 实例
      * 如果是同步更新，则直接调用 updateComponent（）
      */
+    this.emitUpdate();
+  }
+
+  emitUpdate() {
     updateQueue.isBatchingUpdate
       ? updateQueue.add(this)
       : this.updateComponent();
@@ -36,10 +40,8 @@ class Updater {
   updateComponent() {
     let { classInstance } = this;
     if (this.pendingStates.length > 0) {
-      // 替换 state 为最新的状态
-      classInstance.state = this.getState();
-      // 强制视图进行更新
-      classInstance.forceUpdate();
+      // 无论是否更新视图， 状态都会被更新
+      shouldUpdate(classInstance, this.getState());
     }
   }
   // 获取最新的状态
@@ -60,6 +62,18 @@ class Updater {
   }
 }
 
+function shouldUpdate(classInstance, nextState) {
+  classInstance.state = nextState;
+  // 如果 shouldComponentUpdate 返回 fale，则不更新页面
+  if (
+    classInstance.shouldComponentUpdate &&
+    !classInstance.shouldComponentUpdate(classInstance.props, nextState)
+  ) {
+    return;
+  }
+  classInstance.forceUpdate();
+}
+
 class Component {
   static isReactComponent = true;
   constructor(props) {
@@ -75,6 +89,9 @@ class Component {
 
   // 更新视图
   forceUpdate() {
+    if (this.componentWillUpdate) {
+      this.componentWillUpdate();
+    }
     // 此时 renderVdom 已经是更新后的虚拟 DOM（state已经更新）
     let renderVdom = this.render();
     updateClassComponent(this, renderVdom);
@@ -85,6 +102,9 @@ function updateClassComponent(classInstance, renderVdom) {
   let oldDOM = classInstance.dom;
   let newDOM = createDOM(renderVdom);
   oldDOM.parentNode.replaceChild(newDOM, oldDOM);
+  if (classInstance.componentDidUpdate) {
+    classInstance.componentDidUpdate();
+  }
   classInstance.dom = newDOM;
 }
 
