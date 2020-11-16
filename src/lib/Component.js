@@ -1,4 +1,4 @@
-import { createDOM } from "./react-dom";
+import { createDOM, compareTwoVdom } from "./react-dom";
 import { isFunction } from "../utils";
 
 export const updateQueue = {
@@ -93,19 +93,30 @@ class Component {
       this.componentWillUpdate();
     }
     // 此时 renderVdom 已经是更新后的虚拟 DOM（state已经更新）
-    let renderVdom = this.render();
-    updateClassComponent(this, renderVdom);
+    // let renderVdom = this.render();
+    // updateClassComponent(this, renderVdom);
+
+    let newVdom = this.render();
+    let currentVdom = compareTwoVdom(
+      this.oldVdom.dom.parentNode,
+      this.oldVdom,
+      newVdom
+    );
+    this.oldVdom = currentVdom;
+    if (this.componentDidUpdate) {
+      this.componentDidUpdate();
+    }
   }
 }
 
-function updateClassComponent(classInstance, renderVdom) {
-  let oldDOM = classInstance.dom;
-  let newDOM = createDOM(renderVdom);
-  oldDOM.parentNode.replaceChild(newDOM, oldDOM);
-  if (classInstance.componentDidUpdate) {
-    classInstance.componentDidUpdate();
-  }
-  classInstance.dom = newDOM;
-}
+// function updateClassComponent(classInstance, renderVdom) {
+//   let oldDOM = classInstance.dom;
+//   let newDOM = createDOM(renderVdom);
+//   oldDOM.parentNode.replaceChild(newDOM, oldDOM);
+//   if (classInstance.componentDidUpdate) {
+//     classInstance.componentDidUpdate();
+//   }
+//   classInstance.dom = newDOM;
+// }
 
 export default Component;
