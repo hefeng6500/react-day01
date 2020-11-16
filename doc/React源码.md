@@ -570,3 +570,11 @@ const counter = <Counter />;
 ReactDOM.render(counter, document.getElementById("root"));
 ~~~
 
+
+
+### 实现生命周期函数
+
+~~~jsx
+
+~~~
+
