@@ -574,7 +574,294 @@ ReactDOM.render(counter, document.getElementById("root"));
 
 ### 实现生命周期函数
 
-~~~jsx
+**旧版本生命周期**
 
+![react-life-cycle.86f3858d](img/react-life-cycle.86f3858d.jpg)
+
+
+
+主要实现的生命周期函数：`constructor`、`componentWillMount`、`componentDidMount`、`componentWillUpdate`、`componentDidUpdate`、`componentWillReceiveProps`
+
+
+
+**componentWillMount、componentDidMount**
+
+- `createDOM` 判断类组件时调用 `mountClassComponent`
+- ？？？目前老师的写法是写在 `container.appendChild(dom); `之前，我感觉应该写在 `container.appendChild(dom)` 之后
+
+~~~jsx
+export function createDOM(vdom) {
+  // 如果 vdom 是基本类型，说明是文本类型
+  if (typeof vdom === "string" || typeof vdom === "number") {
+    return document.createTextNode(vdom);
+  }
+
+  let { type, props, ref } = vdom;
+  let dom;
+
+  if (typeof type === "function") {
+    if (type.isReactComponent) {
+      //说明这个type是一个类组件的虚拟DOM元素
+      return mountClassComponent(vdom);
+    } else {
+      return mountFunctionComponent(vdom);
+    }
+  } else {
+    dom = document.createElement(type);
+  }
+
+  updateDOMAttr(dom, {},props);
+
+  if (
+    typeof props.children === "string" ||
+    typeof props.children === "number"
+  ) {
+    dom.textContent = props.children;
+  } else if (typeof props.children == "object" && props.children.type) {
+    // 如果单元素节点
+    // 假如是这样的 children: { type: "div", props: {children: "hello"} }
+    render(props.children, dom);
+  } else if (Array.isArray(props.children)) {
+    //是数组的话
+    reconcileChildren(props.children, dom);
+  } else {
+    dom.textContent = props.children ? props.children.toString() : "";
+  }
+  vdom.dom = dom;
+  if (ref) {
+    ref.current = dom;
+  }
+  return dom;
+}
+
+
+function mountClassComponent(vdom) {
+  const { type, props } = vdom;
+  const classInstance = new type(props);
+
+  vdom.classInstance = classInstance;
+  if (classInstance.componentWillMount) {
+    classInstance.componentWillMount();
+  }
+  const renderVdom = classInstance.render();
+
+  const dom = createDOM(renderVdom);
+  vdom.dom = renderVdom.dom = dom;
+  classInstance.oldVdom = renderVdom;
+  classInstance.dom = dom;
+  if (classInstance.componentDidMount) {
+    classInstance.componentDidMount();
+  }
+  return dom;
+}
 ~~~
+
+
+
+**shouldComponentUpdate**
+
+```jsx
+class Updater {
+  constructor(classInstance) {
+    // 类组件实例
+    this.classInstance = classInstance;
+    // 收集状态
+    this.pendingStates = [];
+  }
+
+  addState(partialState) {
+    this.pendingStates.push(partialState);
+    /**
+     * 如果是异步更新，当前处于批量更新模式，则 updateQueue.add(this) ，updaters 中存储更新的 Updater 实例
+     * 如果是同步更新，则直接调用 updateComponent（）
+     */
+    this.emitUpdate();
+  }
+
+  emitUpdate(nextProps) {
+    this.nextProps = nextProps;
+    //如果有新的属性拿 到了,或者现在处于非批量模式(异步更新模式),直接更新
+    this.nextProps || !updateQueue.isBatchingUpdate
+      ? this.updateComponent()
+      : updateQueue.add(this);
+  }
+
+  updateComponent() {
+    let { classInstance, pendingStates, nextProps } = this;
+    if (nextProps || pendingStates.length > 0) {
+      // 无论是否更新视图， 状态都会被更新
+      shouldUpdate(classInstance, nextProps, this.getState());
+    }
+  }
+  // 获取最新的状态
+  getState() {
+    let { classInstance, pendingStates } = this;
+    let { state } = classInstance;
+    if (pendingStates.length > 0) {
+      pendingStates.forEach((nextState) => {
+        if (isFunction(nextState)) {
+          nextState = nextState(state);
+        } else {
+          state = { ...state, ...nextState };
+        }
+      });
+      pendingStates.length = 0;
+    }
+    return state;
+  }
+}
+
+function shouldUpdate(classInstance, nextProps, nextState) {
+  if (nextProps) {
+    classInstance.props = nextProps;
+  }
+  classInstance.state = nextState;
+  // 如果 shouldComponentUpdate 返回 fale，则不更新页面
+  if (
+    classInstance.shouldComponentUpdate &&
+    !classInstance.shouldComponentUpdate(classInstance.props, nextState)
+  ) {
+    return;
+  }
+  classInstance.forceUpdate();
+}
+```
+
+
+
+**componentWillUpdate、componentDidUpdate**
+
+```js
+  forceUpdate() {
+    if (this.componentWillUpdate) {
+      this.componentWillUpdate();
+    }
+
+    let newVdom = this.render();
+    let currentVdom = compareTwoVdom(
+      this.oldVdom.dom.parentNode,
+      this.oldVdom,
+      newVdom
+    );
+    this.oldVdom = currentVdom;
+    if (this.componentDidUpdate) {
+      this.componentDidUpdate();
+    }
+  }
+```
+
+
+
+**componentWillReceiveProps**
+
+- 调用栈： compareTwoVdom  -->  updateElement  -->  updateClassInstance -->  componentWillReceiveProps
+
+```js
+function compareTwoVdom(parentDOM, oldVdom, newVdom, nextDOM) {
+  //如果老的是null新的也是null
+  if (!oldVdom && !newVdom) {
+    return null;
+    //如果老有,新没有,意味着此节点被删除了
+  } else if (oldVdom && !newVdom) {
+    let currentDOM = oldVdom.dom; //span
+    parentDOM.removeChild(currentDOM);
+    if (oldVdom.classInstance && oldVdom.classInstance.componentWillUnmount) {
+      oldVdom.classInstance.componentWillUnmount();
+    }
+    return null;
+    //如果说老没有,新的有,新建DOM节点
+  } else if (!oldVdom && newVdom) {
+    let newDOM = createDOM(newVdom); //创建一个新的真实DOM并且挂载到父节点DOM上
+    if (nextDOM) {
+      //如果有下一个弟弟DOM的话,插到弟弟前面 p child-counter button
+      parentDOM.insertBefore(newDOM, nextDOM);
+    } else {
+      parentDOM.appendChild(newDOM);
+    }
+    return newVdom;
+    //如果类型不同，也不能复用了，也需要把老的替换新的
+  } else if (oldVdom && newVdom && oldVdom.type !== newVdom.type) {
+    let oldDOM = oldVdom.dom;
+    let newDOM = createDOM(newVdom);
+    oldDOM.parentNode.replaceChild(newDOM, oldDOM);
+    if (oldVdom.classInstance && oldVdom.classInstance.componentWillUnmount) {
+      oldVdom.classInstance.componentWillUnmount();
+    }
+    return newVdom;
+  } else {
+    //新节点和老节点都有值
+    updateElement(oldVdom, newVdom);
+    return newVdom;
+  }
+}
+
+function updateElement(oldVdom, newVdom) {
+  //如果走到这个,则意味着我们要复用老的DOM节点了
+  let currentDOM = (newVdom.dom = oldVdom.dom); //获取 老的真实DOM
+  newVdom.classInstance = oldVdom.classInstance;
+  if (typeof oldVdom.type === "string") {
+    //原生的DOM类型 div span p
+    updateDOMAttr(currentDOM, oldVdom.props, newVdom.props);
+    updateChildren(currentDOM, oldVdom.props.children, newVdom.props.children);
+  } else if (typeof oldVdom.type === "function") {
+    //就是类组件了
+    updateClassInstance(oldVdom, newVdom);
+  }
+}
+
+function updateClassInstance(oldVdom, newVdom) {
+  let classInstance = oldVdom.classInstance;
+  //当父组件更新的时候,会让子组件更新
+  if (classInstance.componentWillReceiveProps) {
+    classInstance.componentWillReceiveProps(newVdom.props);
+  }
+  //把新的属性传递给emitUpdate方法
+  classInstance.updater.emitUpdate(newVdom.props);
+}
+```
+
+
+
+
+
+**新版本生命周期**
+
+![react16-life-cycle.7d456cb0.jpg](img/react16-life-cycle.7d456cb0.jpg)
+
+
+
+**getDerivedStateFromProps、getSnapshotBeforeUpdate**
+
+```js
+forceUpdate() {
+    if (this.componentWillUpdate) {
+      this.componentWillUpdate();
+    }
+
+    if (this.ownVdom.type.getDerivedStateFromProps) {
+      let newState = this.ownVdom.type.getDerivedStateFromProps(
+        this.props,
+        this.state
+      );
+      if (newState) {
+        this.state = newState;
+      }
+    }
+
+    let newVdom = this.render();
+
+    let extraArgs =
+      this.getSnapshotBeforeUpdate && this.getSnapshotBeforeUpdate();
+
+    let currentVdom = compareTwoVdom(
+      this.oldVdom.dom.parentNode,
+      this.oldVdom,
+      newVdom
+    );
+    this.oldVdom = currentVdom;
+    if (this.componentDidUpdate) {
+      this.componentDidUpdate(this.props, this.state, extraArgs);
+    }
+  }
+```
 
