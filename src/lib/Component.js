@@ -31,17 +31,19 @@ class Updater {
     this.emitUpdate();
   }
 
-  emitUpdate() {
-    updateQueue.isBatchingUpdate
-      ? updateQueue.add(this)
-      : this.updateComponent();
+  emitUpdate(nextProps) {
+    this.nextProps = nextProps;
+    //如果有新的属性拿 到了,或者现在处于非批量模式(异步更新模式),直接更新
+    this.nextProps || !updateQueue.isBatchingUpdate
+      ? this.updateComponent()
+      : updateQueue.add(this);
   }
 
   updateComponent() {
-    let { classInstance } = this;
-    if (this.pendingStates.length > 0) {
+    let { classInstance, pendingStates, nextProps } = this;
+    if (nextProps || pendingStates.length > 0) {
       // 无论是否更新视图， 状态都会被更新
-      shouldUpdate(classInstance, this.getState());
+      shouldUpdate(classInstance, nextProps, this.getState());
     }
   }
   // 获取最新的状态
@@ -62,7 +64,10 @@ class Updater {
   }
 }
 
-function shouldUpdate(classInstance, nextState) {
+function shouldUpdate(classInstance, nextProps, nextState) {
+  if (nextProps) {
+    classInstance.props = nextProps;
+  }
   classInstance.state = nextState;
   // 如果 shouldComponentUpdate 返回 fale，则不更新页面
   if (
@@ -92,9 +97,6 @@ class Component {
     if (this.componentWillUpdate) {
       this.componentWillUpdate();
     }
-    // 此时 renderVdom 已经是更新后的虚拟 DOM（state已经更新）
-    // let renderVdom = this.render();
-    // updateClassComponent(this, renderVdom);
 
     let newVdom = this.render();
     let currentVdom = compareTwoVdom(
@@ -108,15 +110,5 @@ class Component {
     }
   }
 }
-
-// function updateClassComponent(classInstance, renderVdom) {
-//   let oldDOM = classInstance.dom;
-//   let newDOM = createDOM(renderVdom);
-//   oldDOM.parentNode.replaceChild(newDOM, oldDOM);
-//   if (classInstance.componentDidUpdate) {
-//     classInstance.componentDidUpdate();
-//   }
-//   classInstance.dom = newDOM;
-// }
 
 export default Component;

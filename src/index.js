@@ -84,10 +84,18 @@ import ReactDOM from "./lib/react-dom";
 // ReactDOM.render(counter, document.getElementById("root"));
 
 class Child extends React.Component {
-  // shouldComponentUpdate(nextProps, nextStates) {
-  //   console.log("2. Child shouldComponentUpdate is running");
-  //   return nextProps.number % 2 === 0;
-  // }
+  shouldComponentUpdate(nextProps, nextStates) {
+    console.log("2. Child shouldComponentUpdate is running");
+    return nextStates.number % 2 === 0;
+  }
+
+  constructor(props) {
+    super(props);
+    console.log("1. Child constructor is running");
+    this.state = {
+      number: 0,
+    };
+  }
 
   render() {
     console.log("3. Child render is running");
@@ -103,7 +111,6 @@ class Child extends React.Component {
   }
 
   componentWillReceiveProps(nextProps, state) {
-    debugger;
     console.log("5. Child componentWillReceiveProps is running");
   }
 
