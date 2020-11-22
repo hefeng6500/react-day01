@@ -1,4 +1,4 @@
-import { createDOM, compareTwoVdom } from "./react-dom";
+import { compareTwoVdom } from "./react-dom";
 import { isFunction } from "../utils";
 
 export const updateQueue = {
@@ -109,6 +109,10 @@ class Component {
     }
 
     let newVdom = this.render();
+
+    let extraArgs =
+      this.getSnapshotBeforeUpdate && this.getSnapshotBeforeUpdate();
+
     let currentVdom = compareTwoVdom(
       this.oldVdom.dom.parentNode,
       this.oldVdom,
@@ -116,7 +120,7 @@ class Component {
     );
     this.oldVdom = currentVdom;
     if (this.componentDidUpdate) {
-      this.componentDidUpdate();
+      this.componentDidUpdate(this.props, this.state, extraArgs);
     }
   }
 }
