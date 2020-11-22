@@ -98,6 +98,16 @@ class Component {
       this.componentWillUpdate();
     }
 
+    if (this.ownVdom.type.getDerivedStateFromProps) {
+      let newState = this.ownVdom.type.getDerivedStateFromProps(
+        this.props,
+        this.state
+      );
+      if (newState) {
+        this.state = newState;
+      }
+    }
+
     let newVdom = this.render();
     let currentVdom = compareTwoVdom(
       this.oldVdom.dom.parentNode,

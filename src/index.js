@@ -84,11 +84,6 @@ import ReactDOM from "./lib/react-dom";
 // ReactDOM.render(counter, document.getElementById("root"));
 
 class Child extends React.Component {
-  shouldComponentUpdate(nextProps, nextStates) {
-    console.log("2. Child shouldComponentUpdate is running");
-    return nextStates.number % 2 === 0;
-  }
-
   constructor(props) {
     super(props);
     console.log("1. Child constructor is running");
@@ -97,9 +92,23 @@ class Child extends React.Component {
     };
   }
 
+  static getDerivedStateFromProps(nextProps, prevState) {
+    let { count } = nextProps;
+    console.log(count);
+    if (count % 2 === 0) {
+      return {
+        number: count * 2,
+      };
+    } else {
+      return {
+        number: count * 3,
+      };
+    }
+  }
+
   render() {
     console.log("3. Child render is running");
-    return <div>{this.props.count}</div>;
+    return <div>{this.state.number}</div>;
   }
 
   componentWillMount() {
@@ -144,17 +153,12 @@ class Parent extends React.Component {
     });
   };
 
-  // shouldComponentUpdate(nextProps, nextStates) {
-  //   console.log("2. shouldComponentUpdate is running");
-  //   return nextStates.number % 2 === 0;
-  // }
-
   render() {
     console.log("3. render is running");
     return (
       <div>
         <h1>{this.state.number}</h1>
-        {this.state.number === 4 ? null : <Child count={this.state.number} />}
+        <Child count={this.state.number} />
         <button onClick={this.add}>Click</button>
       </div>
     );

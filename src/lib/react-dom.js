@@ -86,6 +86,7 @@ function mountClassComponent(vdom) {
   const classInstance = new type(props);
 
   vdom.classInstance = classInstance;
+  classInstance.ownVdom = vdom;
   if (classInstance.componentWillMount) {
     classInstance.componentWillMount();
   }
