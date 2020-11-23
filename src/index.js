@@ -4,58 +4,32 @@ import ReactDOM from "./lib/react-dom";
 // import React from "react";
 // import ReactDOM from "react-dom";
 
-class ScrollList extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      messages: [],
-    };
-    this.wrapper = React.createRef();
-  }
-
-  addMessage() {
-    this.setState({
-      messages: [`${this.state.messages.length}`, ...this.state.messages],
-    });
-  }
-
+class Button extends React.Component {
   render() {
-    const style = {
-      height: "100px",
-      width: "220px",
-      border: "1px solid #ddd",
-      overflow: "auto",
-    };
-    return (
-      <div style={style} ref={this.wrapper}>
-        {this.state.messages.map((message, index) => (
-          <div key={index}>{message}</div>
-        ))}
-      </div>
-    );
-  }
-
-  getSnapshotBeforeUpdate() {
-    return {
-      prevScrollTop: this.wrapper.current.scrollTop,
-      prevScrollHeight: this.wrapper.current.scrollHeight,
-    };
-  }
-
-  componentDidMount() {
-    this.timer = setInterval(() => {
-      this.addMessage();
-    }, 1000);
-  }
-
-  componentDidUpdate(
-    prevProps,
-    prevState,
-    { prevScrollTop, prevScrollHeight }
-  ) {
-    this.wrapper.current.scrollTop =
-      prevScrollTop + (this.wrapper.current.scrollHeight - prevScrollHeight);
+    return <button theme={this.props.theme}>{this.props.theme}</button>;
   }
 }
 
-ReactDOM.render(<ScrollList />, document.getElementById("root"));
+class ThemedButton extends React.Component {
+  render() {
+    return <Button theme={this.props.theme} />;
+  }
+}
+
+function Toolbar(props) {
+  // Toolbar 组件接受一个额外的“theme”属性，然后传递给 ThemedButton 组件。
+  // 如果应用中每一个单独的按钮都需要知道 theme 的值，这会是件很麻烦的事，
+  // 因为必须将这个值层层传递所有组件。
+  return (
+    <div>
+      <ThemedButton theme={props.theme} />
+    </div>
+  );
+}
+class App extends React.Component {
+  render() {
+    return <Toolbar theme="dark" />;
+  }
+}
+
+ReactDOM.render(<App />, document.getElementById("root"));
