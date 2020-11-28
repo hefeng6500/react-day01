@@ -1,8 +1,8 @@
-// import React from "./lib/react";
-// import ReactDOM from "./lib/react-dom";
+import React from "./lib/react";
+import ReactDOM from "./lib/react-dom";
 
-import React from "react";
-import ReactDOM from "react-dom";
+// import React from "react";
+// import ReactDOM from "react-dom";
 
 const UserContext = React.createContext({
   user: "hefeng6500",

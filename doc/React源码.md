@@ -8,7 +8,7 @@
 
 首先实现一个简单的 React 程序，打印一些元素
 
-~~~jsx
+```jsx | pure
 import React from "react";
 import ReactDOM from "react-dom";
 
@@ -28,11 +28,10 @@ let helloComponent = React.createElement(
 console.log(JSON.stringify(helloComponent, null, 2));
 ReactDOM.render(helloComponent, document.getElementById("root"));
 
-~~~
+```
 
-
-
-~~~json
+打印结果：
+```json
 {
   "type": "div",
   "key": null,
@@ -59,13 +58,13 @@ ReactDOM.render(helloComponent, document.getElementById("root"));
   "_owner": null,
   "_store": {}
 }
-~~~
+```
 
 ### 实现 createElement()
 
 - 返回 virtualDOM 描述真实 DOM
 
-~~~js
+```js
 function createElement(type, config, children) {
   if (config) {
     delete config.__source;
@@ -87,7 +86,7 @@ function createElement(type, config, children) {
 
 export default { createElement };
 
-~~~
+```
 
 ### 实现 createDOM()、render()
 
@@ -101,7 +100,7 @@ export default { createElement };
 
 **类组件如何渲染？**
 
-~~~jsx
+```jsx | pure
 class Counter extends React.Component {
   constructor(props) {
     super(props);
@@ -124,7 +123,7 @@ class Counter extends React.Component {
 const counter = <Counter title="计数器" />
 
 ReactDOM.render(counter, document.getElementById("root"));
-~~~
+```
 
 
 
@@ -143,7 +142,7 @@ ReactDOM.render(counter, document.getElementById("root"));
 - 考虑 virtualDOM 类型、`string`、`number`、`object`、`array`
 - virtualDOM 节点上的属性、样式挂载到真实 DOM
 
-~~~js
+```js
 function render(vdom, container) {
   const dom = createDOM(vdom);
   container.appendChild(dom);
@@ -235,7 +234,7 @@ export default {
   render,
 };
 
-~~~
+```
 
 
 
@@ -300,7 +299,7 @@ function updateDOMAttr(dom, props) {
 }
 ```
 
-```jsx
+```jsx | pure
 // event.js
 
 import { updateQueue } from "./Component";
@@ -369,7 +368,7 @@ function createSyntheticEvent(event) {
   - 触发视图进行强制刷新，`updateComponent()`
 - Component  类中 `forceUpdate()` 强制更新视图，将虚拟 dom 转化为真实 dom，挂载到视图
 
-```jsx
+```jsx | pure
 // Component.js
 class Updater {
   constructor(classInstance) {
@@ -420,7 +419,7 @@ class Updater {
 
 
 
-```jsx
+```jsx | pure
 // Component.js
 class Component {
   static isReactComponent = true;
@@ -459,7 +458,7 @@ function updateClassComponent(classInstance, renderVdom) {
 
 - 修改 index.js 文件内容，手动改变 `isBatchingUpdate` 的值，并手动清空队列更新（这里有点 low ）
 
-```jsx
+```jsx | pure
 // index.js
 class Counter extends React.Component {
   constructor(props) {
@@ -486,7 +485,7 @@ class Counter extends React.Component {
 }
 ```
 
-```jsx
+```jsx | pure
 export const updateQueen = {
   updaters: new Set(),
   isBatchingUpdate: false,
@@ -504,7 +503,7 @@ export const updateQueen = {
 
 ### 实现createRef()
 
-~~~jsx
+```jsx | pure
 // react.js
 
 function createRef() {
@@ -517,9 +516,9 @@ export default {
     // ...
     createRef
 };
-~~~
+```
 
-~~~jsx
+```jsx | pure
 // react-dom.js
 
 export function createDOM(vdom) {
@@ -535,9 +534,9 @@ export function createDOM(vdom) {
   }
   return dom;
 }
-~~~
+```
 
-~~~jsx
+```jsx | pure
 // 实例
 
 class Counter extends React.Component {
@@ -568,7 +567,7 @@ class Counter extends React.Component {
 const counter = <Counter />;
 
 ReactDOM.render(counter, document.getElementById("root"));
-~~~
+```
 
 
 
@@ -576,7 +575,7 @@ ReactDOM.render(counter, document.getElementById("root"));
 
 **旧版本生命周期**
 
-![react-life-cycle.86f3858d](img/react-life-cycle.86f3858d.jpg)
+![react-life-cycle.86f3858d](./img/react-life-cycle.86f3858d.jpg)
 
 
 
@@ -589,7 +588,7 @@ ReactDOM.render(counter, document.getElementById("root"));
 - `createDOM` 判断类组件时调用 `mountClassComponent`
 - ？？？目前老师的写法是写在 `container.appendChild(dom); `之前，我感觉应该写在 `container.appendChild(dom)` 之后
 
-~~~jsx
+```jsx | pure
 export function createDOM(vdom) {
   // 如果 vdom 是基本类型，说明是文本类型
   if (typeof vdom === "string" || typeof vdom === "number") {
@@ -654,13 +653,13 @@ function mountClassComponent(vdom) {
   }
   return dom;
 }
-~~~
+```
 
 
 
 **shouldComponentUpdate**
 
-```jsx
+```jsx | pure
 class Updater {
   constructor(classInstance) {
     // 类组件实例
@@ -826,7 +825,7 @@ function updateClassInstance(oldVdom, newVdom) {
 
 **新版本生命周期**
 
-![react16-life-cycle.7d456cb0.jpg](img/react16-life-cycle.7d456cb0.jpg)
+![react16-life-cycle.7d456cb0.jpg](./img/react16-life-cycle.7d456cb0.jpg)
 
 
 
