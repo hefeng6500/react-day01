@@ -43,4 +43,22 @@ function createContext() {
   };
 }
 
-export default { createElement, Component, createRef, createContext };
+function cloneElement(element, props, children) {
+  if (arguments.length > 3) {
+    children = Array.from(arguments).slice(2);
+  }
+
+  return {
+    ...element,
+    props,
+    children,
+  };
+}
+
+export default {
+  createElement,
+  Component,
+  createRef,
+  createContext,
+  cloneElement,
+};

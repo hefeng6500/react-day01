@@ -1,65 +1,47 @@
-import React from "./lib/react";
-import ReactDOM from "./lib/react-dom";
+// import React from "./lib/react";
+// import ReactDOM from "./lib/react-dom";
 
-// import React from "react";
-// import ReactDOM from "react-dom";
+import React from "react";
+import ReactDOM from "react-dom";
 
-const UserContext = React.createContext({
-  user: "hefeng6500",
-  avatarSize: "large",
-});
+const wrapper = (OldComponent) => {
+  return class NewComponent extends OldComponent {
+    state = { number: 0 };
+    componentDidMount() {
+      console.log("WrapperButton componentDidMount");
+      super.componentDidMount();
+    }
+    handleClick = () => {
+      this.setState({ number: this.state.number + 1 });
+    };
+    render() {
+      console.log("WrapperButton render");
+      let renderElement = super.render();
+      let newProps = {
+        ...renderElement.props,
+        ...this.state,
+        onClick: this.handleClick,
+      };
+      return React.cloneElement(renderElement, newProps, this.state.number);
+    }
+  };
+};
 
-function Link(props) {
-  return (
-    <UserContext.Consumer>
-      {({ user }) => {
-        return (
-          <div>
-            {user}
-            <div>{props.children}</div>
-          </div>
-        );
-      }}
-    </UserContext.Consumer>
-  );
-}
-
-function Avatar() {
-  return (
-    <UserContext.Consumer>
-      {({ avatarSize }) => {
-        return <div>{avatarSize}</div>;
-      }}
-    </UserContext.Consumer>
-  );
-}
-
-function NavigationBar(props) {
-  return (
-    <Link>
-      <Avatar />
-    </Link>
-  );
-}
-
-function PageLayout(props) {
-  return <NavigationBar />;
-}
-
-function Page() {
-  return <PageLayout />;
-}
-
-class App extends React.Component {
+@wrapper
+class Button extends React.Component {
+  constructor() {
+    super();
+    this.state = { name: "张三" };
+  }
+  componentDidMount() {
+    console.log("Button componentDidMount");
+  }
   render() {
-    const user = "hefeng6500";
-    const avatarSize = "large";
-    return (
-      <UserContext.Provider value={{ user, avatarSize }}>
-        <Page />
-      </UserContext.Provider>
-    );
+    console.log("Button render");
+    return <button name="test" />;
   }
 }
 
-ReactDOM.render(<App />, document.getElementById("root"));
+// let WrappedButton = wrapper(Button);
+
+ReactDOM.render(<Button />, document.getElementById("root"));
