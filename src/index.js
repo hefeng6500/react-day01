@@ -4,6 +4,16 @@
 import React from "react";
 import ReactDOM from "react-dom";
 
+let Text = function (props) {
+  return (
+    <>
+      <h1>移动鼠标</h1>
+      <h1>X: {props.x}</h1>
+      <h1>Y: {props.y}</h1>
+    </>
+  );
+};
+
 class MouseTracker extends React.Component {
   constructor(props) {
     super(props);
@@ -23,24 +33,24 @@ class MouseTracker extends React.Component {
   render() {
     return (
       <div onMouseMove={this.mouseMove} style={{ border: "1px solid red" }}>
-        {this.props.children(this.state)}
+        {this.props.render(this.state)}
       </div>
     );
   }
 }
 
 
+
 ReactDOM.render(
-  <MouseTracker>
-    {(props) => {
-      return (
-        <>
-          <h1>移动鼠标</h1>
-          <h1>X: {props.x}</h1>
-          <h1>Y: {props.y}</h1>
-        </>
-      );
-    }}
+  <MouseTracker render={(props) => {
+    return (
+      <>
+        <h1>移动鼠标</h1>
+        <h1>X: {props.x}</h1>
+        <h1>Y: {props.y}</h1>
+      </>
+    );
+  }}>
   </MouseTracker>,
   document.getElementById("root")
 );
