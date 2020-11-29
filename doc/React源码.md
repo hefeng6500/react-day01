@@ -1066,9 +1066,392 @@ ReactDOM.render(<Button />, document.getElementById("root"));
 - 类似于 Vue 中的 v-slot
 - 组件属性 render，内部使用 `this.props.render`
 
+```jsx | pure
+import React from "react";
+import ReactDOM from "react-dom";
+
+let Text = function (props) {
+  return (
+    <>
+      <h1>移动鼠标</h1>
+      <h1>X: {props.x}</h1>
+      <h1>Y: {props.y}</h1>
+    </>
+  );
+};
+
+class MouseTracker extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      x: 0,
+      y: 0,
+    };
+  }
+
+  mouseMove = (event) => {
+    this.setState({
+      x: event.clientX,
+      y: event.clientY,
+    });
+  };
+
+  render() {
+    return (
+      <div onMouseMove={this.mouseMove} style={{ border: "1px solid red" }}>
+        {this.props.render(this.state)}
+      </div>
+    );
+  }
+}
+
+
+
+ReactDOM.render(
+  <MouseTracker render={(props) => {
+    return (
+      <>
+        <h1>移动鼠标</h1>
+        <h1>X: {props.x}</h1>
+        <h1>Y: {props.y}</h1>
+      </>
+    );
+  }}>
+  </MouseTracker>,
+  document.getElementById("root")
+);
+
+```
+
+### HOC 高阶组件
+
+```jsx | pure
+import React from "./lib/react";
+import ReactDOM from "./lib/react-dom";
+
+// import React from "react";
+// import ReactDOM from "react-dom";
+
+let Text = function (props) {
+  return (
+    <React.Fragment>
+      <h1>移动鼠标</h1>
+      <h1>X: {props.x}</h1>
+      <h1>Y: {props.y}</h1>
+    </React.Fragment>
+  );
+};
+
+function WithMouseTracker(OlcComponent) {
+  return class MouseTracker extends React.Component {
+    constructor(props) {
+      super(props);
+      this.state = {
+        x: 0,
+        y: 0,
+      };
+    }
+
+    mouseMove = (event) => {
+      this.setState({
+        x: event.clientX,
+        y: event.clientY,
+      });
+    };
+
+    render() {
+      return (
+        <div onMouseMove={this.mouseMove} style={{ border: "1px solid red" }}>
+          <OlcComponent {...this.state} />
+        </div>
+      );
+    }
+  };
+}
+
+const HightOrder = WithMouseTracker(Text);
+
+ReactDOM.render(<HightOrder />, document.getElementById("root"));
+
+```
+
 
 
 ### React.fragement
+
+```jsx | pure
+const reactFragement = "react.fragement";
+
+export function createDOM(vdom) {
+  // 如果 vdom 是基本类型，说明是文本类型
+  if (typeof vdom === "string" || typeof vdom === "number") {
+    return document.createTextNode(vdom);
+  }
+  if (!vdom) {
+    return "";
+  }
+
+  let { type, props, ref } = vdom;
+  let dom;
+
+  if (typeof type === "function") {
+    if (type.isReactComponent) {
+      //说明这个type是一个类组件的虚拟DOM元素
+      return mountClassComponent(vdom);
+    } else {
+      return mountFunctionComponent(vdom);
+    }
+  } else {
+    if (type === reactFragement) {
+      dom = document.createDocumentFragment();
+    } else {
+      dom = document.createElement(type);
+    }
+  }
+
+  updateDOMAttr(dom, {}, props);
+
+  if (
+    typeof props.children === "string" ||
+    typeof props.children === "number"
+  ) {
+    dom.textContent = props.children;
+  } else if (typeof props.children == "object" && props.children.type) {
+    // 如果单元素节点
+    // 假如是这样的 children: { type: "div", props: {children: "hello"} }
+    render(props.children, dom);
+  } else if (Array.isArray(props.children)) {
+    //是数组的话
+    reconcileChildren(props.children, dom);
+  } else {
+    dom.textContent = props.children ? props.children.toString() : "";
+  }
+  if (ref) {
+    ref.current = dom;
+  }
+  vdom.dom = dom;
+  return dom;
+}
+```
+
+
+
+```jsx | pure
+import React from "./lib/react";
+import ReactDOM from "./lib/react-dom";
+
+
+let element = React.createElement(
+  "react.fragement",
+  null,
+  <h1>Hello World!</h1>
+);
+
+ReactDOM.render(element, document.getElementById("root"));
+
+```
+
+### PureComponent 
+
+```jsx | pure
+class PureComponent extends Component {
+  shouldComponentUpdate(newProps,nextState) {
+    return !shallowEqual(this.props, newProps)||!shallowEqual(this.state, nextState);
+  }
+}
+function shallowEqual(obj1, obj2) {
+  if (obj1 === obj2) {
+    return true;
+  }
+  if (typeof obj1 != "object" ||obj1 === null ||typeof obj2 != "object" ||obj2 === null) {
+    return false;
+  }
+  let keys1 = Object.keys(obj1);
+  let keys2 = Object.keys(obj2);
+  if (keys1.length != keys2.length) {
+    return false;
+  }
+  for (let key of keys1) {
+    if (!obj2.hasOwnProperty(key) || obj1[key] !== obj2[key]) {
+      return false;
+    }
+  }
+  return true;
+}
+```
+
+
+
+
+
+
+
+## Day03
+
+### React Hooks
+
+- hooks api 都是函数，以 use 开头，例如： useState()、useRef()
+- 每次组件渲染都是一个独立的闭包
+
+```jsx | pure
+import React, { useState } from "react";
+import ReactDOM from "react-dom";
+
+function Counter() {
+  let [number, setNumber] = useState(0);
+  return (
+    <div>
+      <h1>{number}</h1>
+      <button
+        onClick={() => {
+          setNumber(number + 1);
+        }}
+      >
+        Click
+      </button>
+    </div>
+  );
+}
+
+ReactDOM.render(<Counter />, document.getElementById("root"));
+```
+
+
+
+#### useState()
+
+- 在函数式组件中调用 `useState()` 用于生成一个内部的状态
+- 返回一个数组，分别是当前状态值和**更新函数**，该函数类似于类组件中的 `setState()` ，该函数不会把新的状态和旧的状态进行合并，如有需要，请手动合并
+- 该 **更新函数** 可以传入一个状态值或者一个函数
+- `useState` 函数的入参可以是一个值或者一个函数，如果是函数只会在初始化的时候调用；
+- 如果新的 state 需要通过使用先前的 state 计算得出，那么可以将函数传递给 setState。该函数将接收先前的 state，并返回一个更新后的值
+
+```jsx | pure
+function Counter() {
+  let [number, setNumber] = useState(0);
+
+  // 只会弹出最渲染时的 number 值
+  const alertNumber = function () {
+    setTimeout(() => {
+      alert(number);
+    }, 1000);
+  };
+  return (
+    <div>
+      <h1>{number}</h1>
+      <button
+        onClick={() => {
+          setNumber(number + 1);
+        }}
+      >
+        Click
+      </button>
+      <button onClick={alertNumber}>AlertNumber</button>
+    </div>
+  );
+}
+```
+
+上述代码在 AlertNumber 按钮点击后依然是上一次渲染前的值
+
+
+
+如何在异步中获取最新的值 ？
+
+```jsx | pure
+import React, { useState, useRef } from "react";
+import ReactDOM from "react-dom";
+
+function Counter() {
+  let [number, setNumber] = useState(0);
+  let numRef = useRef();
+
+  // 只会弹出渲染时的 number 值
+  const alertNumber = function () {
+    setTimeout(() => {
+      alert(numRef.current);
+    }, 1000);
+  };
+  return (
+    <div>
+      <h1>{number}</h1>
+      <button
+        onClick={() => {
+          setNumber(number + 1);
+          numRef.current = number + 1;
+        }}
+      >
+        Click
+      </button>
+      <button onClick={alertNumber}>AlertNumber</button>
+    </div>
+  );
+}
+
+ReactDOM.render(<Counter />, document.getElementById("root"));
+```
+
+
+
+```jsx | pure
+function Counter2() {
+  const [number, setNumber] = useState(0);
+  let numberRef = useRef(number);
+  numberRef.current = number;
+  function alertNumber() {
+    setTimeout(() => {
+      alert(numberRef.current);
+    }, 3000);
+  }
+    // 渲染时候的值进行更新
+  function lazy() {
+    setTimeout(() => {
+      setNumber(number + 1);
+    }, 3000);
+  }
+    // 最新的状态值进行更新
+  function lazyFunc() {
+    setTimeout(() => {
+      setNumber((number) => number + 1);
+    }, 3000);
+  }
+  return (
+    <>
+      <p>{number}</p>
+      <button onClick={() => setNumber(number + 1)}>+</button>
+      <button onClick={lazy}>lazy+</button>
+      <button onClick={lazyFunc}>lazyFunc+</button>
+      <button onClick={alertNumber}>alertNumber</button>
+    </>
+  );
+}
+```
+
+
+
+
+
+
+
+
+
+[十个案例学会 React Hooks](https://github.com/happylindz/blog/issues/19#)
+
+[精读《Function VS Class 组件》](https://juejin.cn/post/6844903798779936782)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
