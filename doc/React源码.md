@@ -864,3 +864,211 @@ forceUpdate() {
   }
 ```
 
+### context
+
+```jsx
+import React from "react";
+import ReactDOM from "react-dom";
+
+const UserContext = React.createContext({
+  user: "hefeng6500",
+  avatarSize: "large",
+});
+
+function Link(props) {
+  return (
+    <UserContext.Consumer>
+      {({ user }) => {
+        return (
+          <div>
+            {user}
+            <div>{props.children}</div>
+          </div>
+        );
+      }}
+    </UserContext.Consumer>
+  );
+}
+
+function Avatar() {
+  return (
+    <UserContext.Consumer>
+      {({ avatarSize }) => {
+        return <div>{avatarSize}</div>;
+      }}
+    </UserContext.Consumer>
+  );
+}
+
+function NavigationBar(props) {
+  return (
+    <Link>
+      <Avatar />
+    </Link>
+  );
+}
+
+function PageLayout(props) {
+  return <NavigationBar />;
+}
+
+function Page() {
+  return <PageLayout />;
+}
+
+class App extends React.Component {
+  render() {
+    const user = "hefeng6500";
+    const avatarSize = "large";
+    return (
+      <UserContext.Provider value={{ user, avatarSize }}>
+        <Page />
+      </UserContext.Provider>
+    );
+  }
+}
+
+ReactDOM.render(<App />, document.getElementById("root"));
+```
+
+
+
+### 高阶组件
+
+安装依赖使得支持 装饰器修饰符
+
+```shell
+yarn add @babel/plugin-proposal-decorators customize-cra react-app-rewired -D
+```
+
+配置文件
+
+```json
+// jsconfig.json
+{
+  "compilerOptions": {
+    "experimentalDecorators": true
+  }
+}
+```
+
+```js
+// config-overrides.js
+const { override, addBabelPlugin } = require("customize-cra");
+
+module.exports = override(
+  addBabelPlugin(["@babel/plugin-proposal-decorators", { legacy: true }])
+);
+
+```
+
+
+
+#### 属性代理
+
+示例：
+
+```jsx | pure
+import React from "react";
+import ReactDOM from "react-dom";
+
+const loading = (message) => (OldComponent) => {
+  return class extends React.Component {
+    render() {
+      const state = {
+        show: () => {
+          let div = document.createElement("div");
+          div.innerHTML = `<p id="loading" style="position:absolute;top:100px;z-index:10;background-color:#ddd; color: green;">${message}</p>`;
+          document.body.appendChild(div);
+        },
+        hide: () => {
+          document.getElementById("loading").remove();
+        },
+      };
+      return <OldComponent {...this.props} {...state} />;
+    }
+  };
+};
+@loading("正在加载中")
+class Hello extends React.Component {
+  render() {
+    return (
+      <div>
+        <div>{this.props.test}</div>
+        <button onClick={this.props.show}>show</button>
+        <button onClick={this.props.hide}>hide</button>
+      </div>
+    );
+  }
+}
+// let LoadingHello = loading("正在加载")(Hello);
+
+ReactDOM.render(<Hello test="123" />, document.getElementById("root"));
+```
+
+
+
+#### 反向继承
+
+示例：
+
+```jsx | pure
+import React from "react";
+import ReactDOM from "react-dom";
+
+const wrapper = (OldComponent) => {
+  return class NewComponent extends OldComponent {
+    state = { number: 0 };
+    componentDidMount() {
+      console.log("WrapperButton componentDidMount");
+      super.componentDidMount();
+    }
+    handleClick = () => {
+      this.setState({ number: this.state.number + 1 });
+    };
+    render() {
+      console.log("WrapperButton render");
+      let renderElement = super.render();
+      let newProps = {
+        ...renderElement.props,
+        ...this.state,
+        onClick: this.handleClick,
+      };
+      return React.cloneElement(renderElement, newProps, this.state.number);
+    }
+  };
+};
+
+@wrapper
+class Button extends React.Component {
+  constructor() {
+    super();
+    this.state = { name: "张三" };
+  }
+  componentDidMount() {
+    console.log("Button componentDidMount");
+  }
+  render() {
+    console.log("Button render");
+    return <button name="test" />;
+  }
+}
+
+// let WrappedButton = wrapper(Button);
+
+ReactDOM.render(<Button />, document.getElementById("root"));
+```
+
+
+
+### render props
+
+- 类似于 Vue 中的 v-slot
+- 组件属性 render，内部使用 `this.props.render`
+
+
+
+### React.fragement
+
+
+
