@@ -212,6 +212,18 @@ function updateChildren(parentDOM, oldVChildren, newVChildren) {
     let nextDOM = oldVChildren.find(
       (item, index) => index > i && item && item.dom
     );
+
+    if (
+      (typeof oldVChildren[i] === "string" ||
+        typeof oldVChildren[i] === "number") &&
+      (typeof newVChildren[i] === "string" ||
+        typeof newVChildren[i] === "number")
+    ) {
+      if (oldVChildren[i] !== newVChildren[i]) {
+        parentDOM.childNodes[i].textContent = newVChildren[i];
+      }
+      continue;
+    }
     compareTwoVdom(
       parentDOM,
       oldVChildren[i],

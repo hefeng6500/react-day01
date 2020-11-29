@@ -68,14 +68,16 @@ function shouldUpdate(classInstance, nextProps, nextState) {
   if (nextProps) {
     classInstance.props = nextProps;
   }
-  classInstance.state = nextState;
+  
   // 如果 shouldComponentUpdate 返回 fale，则不更新页面
   if (
     classInstance.shouldComponentUpdate &&
     !classInstance.shouldComponentUpdate(classInstance.props, nextState)
   ) {
+    classInstance.state = nextState;
     return;
   }
+  classInstance.state = nextState;
   classInstance.forceUpdate();
 }
 
