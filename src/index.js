@@ -5,8 +5,8 @@ import React from "react";
 import ReactDOM from "react-dom";
 
 class MouseTracker extends React.Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
       x: 0,
       y: 0,
@@ -22,13 +22,25 @@ class MouseTracker extends React.Component {
 
   render() {
     return (
-      <div onMouseMove={this.mouseMove} style={{border: "1px solid red"}}>
-        <h1>移动鼠标</h1>
-        <h1>X: {this.state.x}</h1>
-        <h1>Y: {this.state.y}</h1>
+      <div onMouseMove={this.mouseMove} style={{ border: "1px solid red" }}>
+        {this.props.children(this.state)}
       </div>
     );
   }
 }
 
-ReactDOM.render(<MouseTracker />, document.getElementById("root"));
+
+ReactDOM.render(
+  <MouseTracker>
+    {(props) => {
+      return (
+        <>
+          <h1>移动鼠标</h1>
+          <h1>X: {props.x}</h1>
+          <h1>Y: {props.y}</h1>
+        </>
+      );
+    }}
+  </MouseTracker>,
+  document.getElementById("root")
+);
