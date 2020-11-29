@@ -4,44 +4,31 @@
 import React from "react";
 import ReactDOM from "react-dom";
 
-const wrapper = (OldComponent) => {
-  return class NewComponent extends OldComponent {
-    state = { number: 0 };
-    componentDidMount() {
-      console.log("WrapperButton componentDidMount");
-      super.componentDidMount();
-    }
-    handleClick = () => {
-      this.setState({ number: this.state.number + 1 });
-    };
-    render() {
-      console.log("WrapperButton render");
-      let renderElement = super.render();
-      let newProps = {
-        ...renderElement.props,
-        ...this.state,
-        onClick: this.handleClick,
-      };
-      return React.cloneElement(renderElement, newProps, this.state.number);
-    }
-  };
-};
-
-@wrapper
-class Button extends React.Component {
+class MouseTracker extends React.Component {
   constructor() {
     super();
-    this.state = { name: "张三" };
+    this.state = {
+      x: 0,
+      y: 0,
+    };
   }
-  componentDidMount() {
-    console.log("Button componentDidMount");
-  }
+
+  mouseMove = (event) => {
+    this.setState({
+      x: event.clientX,
+      y: event.clientY,
+    });
+  };
+
   render() {
-    console.log("Button render");
-    return <button name="test" />;
+    return (
+      <div onMouseMove={this.mouseMove} style={{border: "1px solid red"}}>
+        <h1>移动鼠标</h1>
+        <h1>X: {this.state.x}</h1>
+        <h1>Y: {this.state.y}</h1>
+      </div>
+    );
   }
 }
 
-// let WrappedButton = wrapper(Button);
-
-ReactDOM.render(<Button />, document.getElementById("root"));
+ReactDOM.render(<MouseTracker />, document.getElementById("root"));
